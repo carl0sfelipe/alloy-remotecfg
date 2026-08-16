@@ -1,0 +1,10 @@
+{
+  "id": "fx-02",
+  "name": "fixture-web-02",
+  "tags": {
+    "role": "web",
+    "maintenance": "false"
+  },
+  "content_hash": "6d04213b767e19cb64bcc826002cfeddc624978e9e46b8aa15a391dfa3cfbbc5",
+  "dev_token": "dev-fx-02"
+}

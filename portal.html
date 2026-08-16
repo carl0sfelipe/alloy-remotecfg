@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alloy remotecfg — fatia 1</title>
+  <style>
+    body { font: 16px/1.4 system-ui, sans-serif; max-width: 880px; margin: 24px auto; padding: 0 16px; color: #111; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .lead { margin: 0 0 20px; color: #333; }
+    .machines { display: grid; gap: 8px; margin-bottom: 20px; }
+    .card { border: 1px solid #ccc; padding: 12px; }
+    pre { background: #f4f4f4; padding: 12px; overflow: auto; font-size: 13px; }
+    .btns { display: flex; gap: 8px; margin-top: 12px; }
+    button { min-height: 44px; padding: 8px 16px; font-size: 16px; cursor: pointer; }
+    .msg { margin-top: 12px; }
+    .ins { color: #0a0; } .del { color: #a00; }
+  </style>
+</head>
+<body>
+  <h1>2 máquinas, 1 diff, 3 botões</h1>
+  <p class="lead">Botão grava a decisão. Apply é CLI: <code>./venv/bin/python hitl.py apply changesets/cs-fx-maint-01.json</code></p>
+  <div id="machines" class="machines"></div>
+  <h2>Diff</h2>
+  <pre id="diff"></pre>
+  <p id="status"></p>
+  <div class="btns">
+    <button data-acao="ok">Aprova</button>
+    <button data-acao="edit">Edita</button>
+    <button data-acao="rejeita">Rejeita</button>
+  </div>
+  <p class="msg" id="msg"></p>
+  <script>
+    function esc(s) { return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+    function paintDiff(before, after) {
+      const a = (before || '').split('\n');
+      const b = (after || '').split('\n');
+      const n = Math.max(a.length, b.length);
+      const lines = [];
+      for (let i = 0; i < n; i++) {
+        if (a[i] === b[i]) lines.push('  ' + esc(a[i] || ''));
+        else {
+          if (a[i] != null) lines.push('<span class="del">- ' + esc(a[i]) + '</span>');
+          if (b[i] != null) lines.push('<span class="ins">+ ' + esc(b[i]) + '</span>');
+        }
+      }
+      return lines.join('\n');
+    }
+    async function load() {
+      const s = await (await fetch('/api/state')).json();
+      const box = document.getElementById('machines');
+      box.innerHTML = s.machines.map(m =>
+        '<div class="card"><strong>' + esc(m.id) + '</strong> ' + esc(m.name || '') +
+        '<br>maintenance=' + esc((m.tags || {}).maintenance || '?') +
+        ' hash=' + esc((m.content_hash || '').slice(0, 12)) + '</div>'
+      ).join('');
+      const d = (s.diffs || [])[0];
+      document.getElementById('diff').innerHTML = d ? paintDiff(d.before, d.after) : '(sem changeset)';
+      const h = (s.changeset || {}).hitl || {};
+      document.getElementById('status').textContent =
+        'changeset ' + ((s.changeset || {}).status || '?') + ' acao=' + (h.acao || '—');
+    }
+    document.querySelectorAll('button[data-acao]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const acao = btn.getAttribute('data-acao');
+        const r = await fetch('/api/decision', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({acao})
+        });
+        const j = await r.json();
+        document.getElementById('msg').textContent = r.ok
+          ? ('gravado: ' + acao + ' — agora rode o apply no CLI')
+          : ('falhou: ' + JSON.stringify(j));
+        load();
+      });
+    });
+    load();
+  </script>
+</body>
+</html>

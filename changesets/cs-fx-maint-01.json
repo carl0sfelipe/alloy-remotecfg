@@ -1,0 +1,15 @@
+{
+  "id": "cs-fx-maint-01",
+  "intent": "colocar fx-02 em maintenance (fatia de 1; o caso 15/75 é o mesmo seletor)",
+  "selector": {"id": ["fx-02"]},
+  "ops": [{"set_tag": {"maintenance": "true"}}],
+  "proposed": [
+    {
+      "id": "fx-02",
+      "before_hash": "replace-on-apply",
+      "content": "logging {\n  level = \"info\"\n}\n\nprometheus.relabel \"host_tags\" {\n  rule {\n    target_label = \"role\"\n    replacement  = \"web\"\n  }\n  rule {\n    target_label = \"maintenance\"\n    replacement  = \"true\"\n  }\n}\n"
+    }
+  ],
+  "status": "awaiting_approval",
+  "hitl": {"acao": null, "por": null, "em": null}
+}

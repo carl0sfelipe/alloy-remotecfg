@@ -1,0 +1,14 @@
+logging {
+  level = "info"
+}
+
+prometheus.relabel "host_tags" {
+  rule {
+    target_label = "role"
+    replacement  = "web"
+  }
+  rule {
+    target_label = "maintenance"
+    replacement  = "false"
+  }
+}

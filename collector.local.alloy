@@ -1,0 +1,17 @@
+// Único arquivo Alloy na máquina. O River grande vem do GetConfig.
+// Preencher URL/id/token por env — não commitar segredo.
+// Servidor local da fatia 1: url = "127.0.0.1:9090" (gRPC insecure; Alloy/Connect fica pra depois).
+
+remotecfg {
+  url = sys.env("ALLOY_REMOTECFG_URL")
+  id  = sys.env("ALLOY_COLLECTOR_ID")
+
+  authorization {
+    type        = "Bearer"
+    credentials = sys.env("ALLOY_REMOTECFG_TOKEN")
+  }
+
+  attributes = {
+    hostname = constants.hostname,
+  }
+}

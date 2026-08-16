@@ -1,0 +1,10 @@
+{
+  "id": "fx-01",
+  "name": "fixture-web-01",
+  "tags": {
+    "role": "web",
+    "maintenance": "false"
+  },
+  "content_hash": "replace-on-apply",
+  "dev_token": "dev-fx-01"
+}

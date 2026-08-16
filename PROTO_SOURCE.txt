@@ -1,0 +1,8 @@
+repo: https://github.com/grafana/alloy-remote-config
+commit: 39a09f328602f1f9fabf7bb54130e76d9ecd5ce0
+date: 2025-12-18
+file: api/collector/v1/collector.proto
+local: proto/collector.proto
+note: proto oficial CollectorService (GetConfig, RegisterCollector, UnregisterCollector).
+      Fatia 1 usa gRPC vanilla (grpcio). Alloy em produção fala Connect no mesmo proto —
+      isso fica fora desta fatia.
