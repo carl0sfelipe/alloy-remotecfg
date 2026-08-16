@@ -3,13 +3,24 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+COLLECTOR_ID_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
 
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def require_collector_id(collector_id: str) -> str:
+    cid = (collector_id or "").strip()
+    if not COLLECTOR_ID_RE.fullmatch(cid):
+        raise ValueError(f"id inválido: {collector_id!r}")
+    return cid
 
 
 def load_json(path: Path):
@@ -17,11 +28,28 @@ def load_json(path: Path):
 
 
 def dump_json(path: Path, obj) -> None:
-    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    raw = json.dumps(obj, ensure_ascii=False, indent=2) + "\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".meta.", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(raw)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def collector_dir(store: Path, collector_id: str) -> Path:
-    return store / collector_id
+    cid = require_collector_id(collector_id)
+    dest = (store / cid).resolve()
+    store_r = store.resolve()
+    if dest != store_r and store_r not in dest.parents:
+        raise ValueError(f"id fora do store: {collector_id!r}")
+    return dest
 
 
 def read_river(store: Path, collector_id: str) -> bytes:
@@ -45,28 +73,43 @@ def write_river(store: Path, collector_id: str, content: str) -> str:
     return digest
 
 
-def list_collectors(store: Path):
+def list_collectors(store: Path, persist_missing_hash: bool = False):
     out = []
     if not store.is_dir():
         return out
     for meta_path in sorted(store.glob("*/meta.json")):
         meta = load_json(meta_path)
         cid = meta.get("id") or meta_path.parent.name
+        try:
+            require_collector_id(cid)
+        except ValueError:
+            continue
         river = read_river(store, cid)
         digest = sha256_bytes(river)
         if meta.get("content_hash") in (None, "", "replace-on-apply"):
             meta["content_hash"] = digest
-            dump_json(meta_path, meta)
+            if persist_missing_hash:
+                dump_json(meta_path, meta)
         out.append(meta)
     return out
 
 
 def tokens_map(store: Path) -> dict:
-    """dev_token (fixture) → collector id. Token nunca entra no River."""
+    """dev_token (fixture) → collector id. Token nunca entra no River. Só lê."""
     mapping = {}
-    for meta in list_collectors(store):
+    if not store.is_dir():
+        return mapping
+    for meta_path in store.glob("*/meta.json"):
+        try:
+            meta = load_json(meta_path)
+        except json.JSONDecodeError:
+            continue
         token = meta.get("dev_token")
-        cid = meta.get("id")
+        cid = meta.get("id") or meta_path.parent.name
+        try:
+            require_collector_id(str(cid))
+        except ValueError:
+            continue
         if token and cid:
             mapping[token] = cid
     return mapping

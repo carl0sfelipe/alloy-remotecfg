@@ -21,12 +21,16 @@ class CollectorService(pb_grpc.CollectorServiceServicer):
         self.store = store
 
     def _auth(self, request_id: str, context) -> str:
+        try:
+            cid = storelib.require_collector_id(request_id)
+        except ValueError:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "id inválido")
         token = storelib.bearer_from_metadata(context.invocation_metadata())
         mapping = storelib.tokens_map(self.store)
         if not token or token not in mapping:
             context.abort(grpc.StatusCode.UNAUTHENTICATED, "bearer desconhecido")
         owner = mapping[token]
-        if owner != request_id:
+        if owner != cid:
             context.abort(grpc.StatusCode.PERMISSION_DENIED, "token não casa com id")
         return owner
 
@@ -35,10 +39,17 @@ class CollectorService(pb_grpc.CollectorServiceServicer):
         if not cid:
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "id obrigatório")
         self._auth(cid, context)
+        meta_path = storelib.collector_dir(self.store, cid) / "meta.json"
+        if meta_path.is_file():
+            meta = storelib.load_json(meta_path)
+            if meta.get("unregistered"):
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION, "collector unregistered")
         try:
             river = storelib.read_river(self.store, cid)
         except FileNotFoundError:
             context.abort(grpc.StatusCode.NOT_FOUND, cid)
+        except ValueError:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "id inválido")
         digest = storelib.sha256_bytes(river)
         if request.hash and request.hash == digest:
             return pb.GetConfigResponse(content="", hash=digest, not_modified=True)

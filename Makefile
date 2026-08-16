@@ -25,4 +25,4 @@ reset:
 test:
 	$(PYTHON) -m grpc_tools.protoc -I proto --python_out=gen --grpc_python_out=gen proto/collector.proto
 	touch gen/__init__.py
-	$(PYTHON) -m unittest tests.test_fatia1 -v
+	$(PYTHON) -m unittest discover -s tests -v
