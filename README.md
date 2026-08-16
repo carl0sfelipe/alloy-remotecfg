@@ -43,7 +43,7 @@ human to see the change and approve it. The portal was the missing piece.
 
 This repo is that proof. Carlos built the deterministic core and put HITL
 in front of apply, then a mock fleet (Mercury) in
-[gigante-mocks](https://github.com/carl0sfelipe/gigante-mocks) so they could
+[mercurio-fleet](https://github.com/carl0sfelipe/mercurio-fleet) so they could
 watch 75 collectors move without touching production.
 
 Idea: Daniel Vargas. Code here: Carlos Felipe.
@@ -96,8 +96,8 @@ The large River never lives there.
 Two fixtures are the contract. Seventy-five hosts are the show:
 
 ```bash
-git clone git@github.com:carl0sfelipe/gigante-mocks.git
-cd gigante-mocks
+git clone git@github.com:carl0sfelipe/mercurio-fleet.git
+cd mercurio-fleet
 make install && make operator
 ```
 
