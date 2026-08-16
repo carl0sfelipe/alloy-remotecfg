@@ -1,0 +1,7 @@
+alloy-remotecfg
+Copyright 2026 Carlos Felipe
+
+This product includes the CollectorService protobuf API from
+grafana/alloy-remote-config (Apache-2.0), vendored at proto/collector.proto
+from commit 39a09f328602f1f9fabf7bb54130e76d9ecd5ce0.
+See PROTO_SOURCE.txt.
