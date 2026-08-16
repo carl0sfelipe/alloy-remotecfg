@@ -48,6 +48,8 @@ watch 75 collectors move without touching production.
 
 Idea: Daniel Vargas. Code here: Carlos Felipe.
 
+![Mercury SRE console on Review diff: Analyze, Proposal, Review, Apply stepper, 9 hosts from log fixture A, and a red/green River diff](docs/ui-review-diff.png)
+
 ---
 
 ## The loop
