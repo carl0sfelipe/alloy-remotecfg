@@ -43,8 +43,8 @@ human to see the change and approve it. The portal was the missing piece.
 
 This repo is that proof. Carlos built the deterministic core and put HITL
 in front of apply, then a mock fleet (Mercury) in
-[mercurio-fleet](https://github.com/carl0sfelipe/mercurio-fleet) so they could
-watch 75 collectors move without touching production.
+[mercurio-fleet](https://github.com/carl0sfelipe/mercurio-fleet) (private lab)
+so they could watch 75 collectors move without touching production.
 
 Idea: Daniel Vargas. Code here: Carlos Felipe.
 
